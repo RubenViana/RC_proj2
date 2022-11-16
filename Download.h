@@ -1,6 +1,21 @@
 #ifndef _DOWNLOAD_H_
 #define _DOWNLOAD_H_
 
+#define HOST_REGEX "%*[^/]//%*[^@]@%[^/]"
+#define HOST2_REGEX "%*[^/]//%[^/]"
+#define PATH_REGEX "%*[^/]//%*[^/]%s"
+#define USER_REGEX "%*[^/]//%[^:]"
+#define PASSWORD_REGEX "%*[^/]//%*[^:]:%[^@]"
+
+#define IP1_REGEX "%*[^(](%[^,]"
+#define IP2_REGEX "%*[^(](%*[^,],%[^,]"
+#define IP3_REGEX "%*[^(](%*[^,],%*[^,],%[^,]"
+#define IP4_REGEX "%*[^(](%*[^,],%*[^,],%*[^,],%[^,]"
+#define IP5_REGEX "%*[^(](%*[^,],%*[^,],%*[^,],%*[^,],%[^,]"
+#define IP6_REGEX "%*[^(](%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%[^)]"
+
+#include <stdio.h>
+
 typedef struct info
 {
   char user[128];       //< User used for Login
@@ -15,15 +30,19 @@ typedef struct info
 
 int main(int argc, char **argv);        //return 0 on success, -1 otherwise
 
-int getIp(char* hostName, info* h_info);     //return 0 on success, -1 otherwise
+int openConnection(int* fd, char* ip, int port);
+
+int closeConnection(int fd);
+
+int getIp(info* h_info);     //return 0 on success, -1 otherwise
 
 int parseInput(char* input, info* h_info);      //return 0 on success, -1 otherwise
 
 int sendCMD(int sockfd, char* cmd);          //return 0 on success, -1 otherwise
 
-int readResp(int sockfd);    //return 0 on success, -1 otherwise
+int recvMSG(FILE* fd);    //return 0 on success, -1 otherwise
 
-int readRespPasv(int sockfd);
+int recvMSGpasv(FILE* fd, char* iprecv, char* portrecv);
 
 
 #endif
