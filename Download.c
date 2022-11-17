@@ -8,8 +8,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <regex.h>
-
-//Only for testing while parsing not implemented !
+#include <fcntl.h>  
 
 
 int main(int argc, char **argv) {
@@ -34,15 +33,24 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    if (openConnection(&sockfd, h_info.ip, 21) == -1) {
+    printf("\n[!] DOWNLOAD PARAMETERS :\n");
+    printf("    - Host: %s\n", h_info.host);
+    printf("    - User: %s\n", h_info.user);
+    printf("    - Password: %s\n", h_info.pass);
+    printf("    - Path: %s\n", h_info.path);
+    printf("    - Filename: %s\n\n", h_info.file_name);
+
+    //Open connection 1
+    if (openConnection(&sockfd, h_info.ip, SERVER_PORT) == -1) {
         fprintf(stderr, "Error on openConnection\n");
         exit(-1);
     }
+    printf("[+] CONNECTION ESTABLISHED  [%s:%d]\n", h_info.ip, SERVER_PORT);
 
     sockFile = fdopen(sockfd,"r");
     recvMSG(sockFile);
     
-    char cmd[256];
+    char cmd[516];
 
     //Login set user
     sprintf(cmd, "user %s\n", h_info.user);
@@ -82,13 +90,11 @@ int main(int argc, char **argv) {
     }
 
     //open connection 2
-
     if (openConnection(&sockfdrecv, iprecv, atoi(portrecv)) == -1) {
         fprintf(stderr, "Error on openConnection\n");
         exit(-1);
     }
-    
-    //TODO: recv port for reading file !
+    printf("[+] CONNECTION ESTABLISHED  [%s:%s]\n", iprecv, portrecv);
 
     //Set to retr
     sprintf(cmd, "retr %s\n", h_info.path);
@@ -101,9 +107,17 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    //TODO: retr data from portrecv to file in cwd !
+    if (saveToFile(sockfdrecv, h_info.file_name) == -1) {
+        perror("Save to file error");
+        exit(-1);
+    }
+    printf("\n[+] FILE SAVED IN CWD  [%s]\n\n", h_info.file_name);
+
+    if (closeConnection(sockfdrecv) == -1) exit(-1);
+    printf("[+] CONNECTION CLOSE  [%s:%s]\n", iprecv, portrecv);
 
     if (closeConnection(sockfd) == -1) exit(-1);
+    printf("[+] CONNECTION CLOSE  [%s:%d]\n", h_info.ip, SERVER_PORT);
     
     return 0;
 }
@@ -167,7 +181,7 @@ int recvMSG(FILE* fd) {
     size_t rbytes = 0;
     while (1){
         getline(&buf, &rbytes, fd);
-        printf("< %s", buf);
+        //printf("< %s", buf);
         if (buf[3] == ' '){
             long code = strtol(buf, &buf, 10);
             //printf("code: %d\n", code);
@@ -188,7 +202,7 @@ int recvMSGpasv(FILE* fd, char* iprecv, char* portrecv) {
     size_t rbytes = 0;
 
     getline(&msg, &rbytes, fd);
-    printf("< %s", msg);
+    //printf("< %s", msg);
 
     sscanf(msg, IP1_REGEX, ip1);
     sscanf(msg, IP2_REGEX, ip2);
@@ -219,11 +233,33 @@ int parseInput(char* input, info* h_info) {
         sscanf(input, HOST2_REGEX, h_info->host);
     }
     
+    /*
     printf("host: %s\n", h_info->host);
     printf("user: %s\n", h_info->user);
     printf("pass: %s\n", h_info->pass);
     printf("path: %s\n", h_info->path);
     printf("filename: %s\n", h_info->file_name);
+    */
+
+    return 0;
+}
+
+int saveToFile(int fd, char* filename) {
+    int file;   
+    int rbytes;
+    char buf[1];
+    if ((file = open(filename, O_WRONLY | O_CREAT, 0777)) == -1) {
+        printf("Cannot open/create file\n");
+        return -1;
+    }
+
+    while((rbytes = read(fd, buf, sizeof(buf))) != 0){
+        if (rbytes > 0) {
+            write(file, buf, sizeof(buf));
+            //printf("%s", buf);
+        }
+    }   
+    close(file);
 
     return 0;
 }

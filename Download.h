@@ -14,14 +14,16 @@
 #define IP5_REGEX "%*[^(](%*[^,],%*[^,],%*[^,],%*[^,],%[^,]"
 #define IP6_REGEX "%*[^(](%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%[^)]"
 
+#define SERVER_PORT 21
+
 #include <stdio.h>
 
 typedef struct info
 {
   char user[128];       //< User used for Login
   char pass[128];       //< Password used for Login
-  char host[256];  //< Host name in URL
-  char path[240];       //< Path to the file
+  char host[256];       //< Host name in URL
+  char path[256];       //< Path to the file
   char file_name[128];  //< Name of the File
   char host_name[128];  //< Host Name from gethostbyname()
   char ip[128];         //< IP Adress from gethostbyname()
@@ -30,9 +32,9 @@ typedef struct info
 
 int main(int argc, char **argv);        //return 0 on success, -1 otherwise
 
-int openConnection(int* fd, char* ip, int port);
+int openConnection(int* fd, char* ip, int port);      //return 0 on success, -1 otherwise
 
-int closeConnection(int fd);
+int closeConnection(int fd);      //return 0 on success, -1 otherwise
 
 int getIp(info* h_info);     //return 0 on success, -1 otherwise
 
@@ -42,7 +44,9 @@ int sendCMD(int sockfd, char* cmd);          //return 0 on success, -1 otherwise
 
 int recvMSG(FILE* fd);    //return 0 on success, -1 otherwise
 
-int recvMSGpasv(FILE* fd, char* iprecv, char* portrecv);
+int recvMSGpasv(FILE* fd, char* iprecv, char* portrecv);    //return 0 on success, -1 otherwise
+
+int saveToFile(int fd, char* filename);     //return 0 on success, -1 otherwise
 
 
 #endif
