@@ -221,6 +221,8 @@ int recvMSGpasv(FILE* fd, char* iprecv, char* portrecv) {
 
 int parseInput(char* input, info* h_info) {
 
+    strcpy(h_info->pass, "");
+
     sscanf(input, HOST_REGEX, h_info->host);
     sscanf(input, USER_REGEX, h_info->user);
     sscanf(input, PASSWORD_REGEX, h_info->pass);
