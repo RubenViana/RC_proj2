@@ -1,0 +1,93 @@
++--------------------------+
+|     RC LabSetUp CMDs     |
++--------------------------+
+
+
+> Cables:
+
+	tux52 E0 ---- switch eth2
+	tux53 E0 ---- switch eth8
+	tux54 E0 ---- switch eth16
+	tux54 E1 ---- switch eth17
+	tux54 S0 ---- switch/router serial port
+	router eth1 ---- netlab (5.1)
+	router eth2 ---- switch eth24
+
+
+> Config tux52:
+
+	ifconfig eth0 172.16.51.1/24
+	route add -net 172.16.50.0/24 gw 172.16.51.253
+	route add -net 172.16.1.0/24 gw 172.16.51.254
+	route add default gw 172.16.51.254
+	
+	
+> Config tux53:
+
+	ifconfig eth0 172.16.50.1/24
+	route add -net 172.16.51.0/24 gw 172.16.50.254
+	route add default gw 172.16.50.254
+
+
+> Config tux54:
+
+	ifconfig eth0 172.16.50.254/24
+	ifconfig eth1 172.16.51.253/24
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	echo 0 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+	route add -net 172.16.1.0/24 gw 172.16.51.254
+	route add default gw 172.16.51.254
+	
+		
+> Reset Mikrotik switch/router:
+	
+	/system reset-configuration
+	
+	
+> Create bridge 50 and 51:
+	
+	/interface bridge add name=bridge50
+	/interface bridge add name=bridge51
+	
+	
+> Remove port from bridge:
+
+	/interface bridge port remove [find interface=ether2]
+	/interface bridge port remove [find interface=ether8]
+	/interface bridge port remove [find interface=ether16]
+	/interface bridge port remove [find interface=ether17]
+	/interface bridge port remove [find interface=ether24]
+	
+	
+> Add port to bridge:
+	
+	/interface bridge port add bridge=bridge50 interface=ether8
+	/interface bridge port add bridge=bridge50 interface=ether16
+	/interface bridge port add bridge=bridge51 interface=ether17
+	/interface bridge port add bridge=bridge51 interface=ether2
+	/interface bridge port add bridge=bridge51 interface=ether24
+	
+	
+> Show bridges and ports:
+
+	/interface bridge port print brief
+	
+	
+> Config Mikrotik router:
+
+	/ip address add address=172.16.1.59/24 interface=ether1
+	/ip address add address=172.16.51.254/24 interface=ether2
+	/ip route add dst-address=172.16.50.0/24 gateway=172.16.51.253
+	/ip route add dst-address=0.0.0.0/0 gateway=172.16.1.254
+	
+	
+> Config DNS at tux52, tux53, tux54:
+
+	set nameserver to 172.16.1.1 at /etc/resolv.conf
+	
+	
+
+	
+	
+	
+	
