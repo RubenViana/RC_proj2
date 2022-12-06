@@ -249,7 +249,7 @@ int parseInput(char* input, info* h_info) {
 int saveToFile(int fd, char* filename) {
     int file;   
     int rbytes;
-    char buf[516];
+    char buf[512];
     if ((file = open(filename, O_WRONLY | O_CREAT, 0777)) == -1) {
         printf("Cannot open/create file\n");
         return -1;
